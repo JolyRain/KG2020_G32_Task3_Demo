@@ -1,3 +1,5 @@
+package pixelDrawers;
+
 import java.awt.*;
 
 public interface PixelDrawer {

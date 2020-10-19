@@ -1,13 +1,9 @@
+package utils;
+
 public class ScreenConverter {
-
-    private double cornerX;
-    private double cornerY;
-
-    private double realWidth;
-    private double realHeight;
-
-    private int screenWidth;
-    private int screenHeight;
+    private double cornerX, cornerY;
+    private double realWidth, realHeight;
+    private int screenWidth, screenHeight;
 
     public ScreenConverter(double cornerX, double cornerY, double realWidth, double realHeight, int screenWidth, int screenHeight) {
         this.cornerX = cornerX;
@@ -18,11 +14,18 @@ public class ScreenConverter {
         this.screenHeight = screenHeight;
     }
 
-    public ScreenPoint realToScreen(RealPoint realPoint) {
-        int answerX = (int) ((realPoint.getX() - cornerX) * screenWidth / realWidth);
-        int answerY = (int) ((cornerY - realPoint.getY()) * screenHeight / realHeight);
-        return new ScreenPoint(answerX, answerY);
+    public ScreenPoint realToScreen(RealPoint p){
+        int ansX = (int)((p.getX() - cornerX) * screenWidth / realWidth);
+        int ansY = (int)((cornerY - p.getY()) * screenHeight / realHeight);
+        return new ScreenPoint(ansX, ansY);
     }
+
+    public RealPoint screenToReal(ScreenPoint screenPoint) {
+        double ansX = screenPoint.getX() * realWidth / screenWidth + cornerX;
+        double ansY = cornerY - screenPoint.getY() * realHeight / screenHeight;
+        return new RealPoint(ansX, ansY);
+    }
+
 
     public double getCornerX() {
         return cornerX;

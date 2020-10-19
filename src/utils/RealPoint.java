@@ -1,5 +1,6 @@
-public class RealPoint {
+package utils;
 
+public class RealPoint {
     private double x;
     private double y;
 
