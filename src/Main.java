@@ -1,14 +1,11 @@
+import app.App;
+
 import javax.swing.*;
 
 public class Main {
-    public static void main(String[] args) {
-        MainWindow mainWindow = new MainWindow();
-        mainWindow.setSize(1280, 720);
-        mainWindow.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        mainWindow.setLocationRelativeTo(null);
-        mainWindow.setVisible(true);
-        mainWindow.setFocusable(true);
-
+    public static void main(String[] args) throws ClassNotFoundException, UnsupportedLookAndFeelException, InstantiationException, IllegalAccessException {
+        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        java.awt.EventQueue.invokeLater(() -> new App().show());
     }
 
 }

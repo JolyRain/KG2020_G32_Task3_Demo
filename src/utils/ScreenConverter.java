@@ -14,9 +14,21 @@ public class ScreenConverter {
         this.screenHeight = screenHeight;
     }
 
-    public ScreenPoint realToScreen(RealPoint p){
-        int ansX = (int)((p.getX() - cornerX) * screenWidth / realWidth);
-        int ansY = (int)((cornerY - p.getY()) * screenHeight / realHeight);
+    @Override
+    public String toString() {
+        return "ScreenConverter{" +
+                "cornerX=" + cornerX +
+                ", cornerY=" + cornerY +
+                ", realWidth=" + realWidth +
+                ", realHeight=" + realHeight +
+                ", screenWidth=" + screenWidth +
+                ", screenHeight=" + screenHeight +
+                '}';
+    }
+
+    public ScreenPoint realToScreen(RealPoint realPoint){
+        int ansX = (int)((realPoint.getX() - cornerX) * screenWidth / realWidth);
+        int ansY = (int)((cornerY - realPoint.getY()) * screenHeight / realHeight);
         return new ScreenPoint(ansX, ansY);
     }
 
