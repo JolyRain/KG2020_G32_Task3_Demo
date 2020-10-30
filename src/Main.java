@@ -7,5 +7,4 @@ public class Main {
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         java.awt.EventQueue.invokeLater(() -> new App().show());
     }
-
 }

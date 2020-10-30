@@ -17,4 +17,11 @@ public class ScreenPoint {
         return y;
     }
 
+    @Override
+    public String toString() {
+        return "ScreenPoint{" +
+                "x=" + x +
+                ", y=" + y +
+                '}';
+    }
 }

@@ -26,9 +26,9 @@ public class ScreenConverter {
                 '}';
     }
 
-    public ScreenPoint realToScreen(RealPoint realPoint){
-        int ansX = (int)((realPoint.getX() - cornerX) * screenWidth / realWidth);
-        int ansY = (int)((cornerY - realPoint.getY()) * screenHeight / realHeight);
+    public ScreenPoint realToScreen(RealPoint realPoint) {
+        int ansX = (int) ((realPoint.getX() - cornerX) * screenWidth / realWidth);
+        int ansY = (int) ((cornerY - realPoint.getY()) * screenHeight / realHeight);
         return new ScreenPoint(ansX, ansY);
     }
 
@@ -36,6 +36,14 @@ public class ScreenConverter {
         double ansX = screenPoint.getX() * realWidth / screenWidth + cornerX;
         double ansY = cornerY - screenPoint.getY() * realHeight / screenHeight;
         return new RealPoint(ansX, ansY);
+    }
+
+
+    public void scale(double zoom) {
+        realWidth *= zoom;
+        realHeight *= zoom;
+        cornerX *= zoom;
+        cornerY *= zoom;
     }
 
 

@@ -35,7 +35,7 @@ public class WuLineDrawer implements LineDrawer {
                 y1 = swap(y2, y2 = y1);
             }
             gradient = (float) dy / dx;
-            float interY = y1 + gradient;
+            float interY = y1;
             pixelDrawer.drawPixel(x1, y1, color);
             for (int x = x1; x < x2; x++) {
                 int alpha = (int) Math.abs(255 - fractionalPart(interY) * 255);
@@ -53,7 +53,7 @@ public class WuLineDrawer implements LineDrawer {
                 y1 = swap(y2, y2 = y1);
             }
             gradient = (float) dx / dy;
-            float interX = x1 + gradient;
+            float interX = x1;
             pixelDrawer.drawPixel(x1, y1, color);
             for (int y = y1; y < y2; y++) {
                 int alpha = (int) (255 - fractionalPart(interX) * 255);

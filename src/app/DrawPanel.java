@@ -3,18 +3,19 @@ package app;
 import functionDrawers.FunctionDrawable;
 import functionDrawers.FunctionDrawer;
 import functions.Function;
+import lineDrawers.BresenhamLineDrawer;
 import lineDrawers.LineDrawer;
-import lineDrawers.WuLineDrawer;
 import pixelDrawers.BufferedImagePixelDrawer;
-import pixelDrawers.GraphicsPixelDrawer;
 import pixelDrawers.PixelDrawer;
 import utils.Line;
 import utils.RealPoint;
 import utils.ScreenConverter;
 import utils.ScreenPoint;
+import world.CoordinateSystem;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.desktop.ScreenSleepEvent;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.text.DecimalFormat;
@@ -30,6 +31,7 @@ public class DrawPanel extends JPanel implements MouseMotionListener, MouseListe
     private Line currentNewLine = null;
     private PixelDrawer pixelDrawer = null;
     private LineDrawer lineDrawer = null;
+    private CoordinateSystem coordinateSystem = new CoordinateSystem(screenConverter);
 
 
     private List<Function> functions = new LinkedList<>();
@@ -61,61 +63,39 @@ public class DrawPanel extends JPanel implements MouseMotionListener, MouseListe
         System.out.println(screenConverter);
     }
 
+    private double round(double num) {
+        String stringNumber = String.valueOf(num);
+        double multipleOf = 1;
+        double result = num;
 
-    private void drawGrid(LineDrawer lineDrawer) {
-
-        double stepX = screenConverter.getRealWidth() / 10;
-        double stepY = screenConverter.getRealHeight() / 10;
-
-        for (double x = -screenConverter.getRealWidth(); x <= screenConverter.getRealWidth(); x += stepX) {
-            ScreenPoint point1 = screenConverter.realToScreen(new RealPoint(x, screenConverter.getRealHeight()));
-            ScreenPoint point2 = screenConverter.realToScreen(new RealPoint(x, -screenConverter.getRealHeight()));
-            lineDrawer.drawLine(point1.getX(), point1.getY(), point2.getX(), point2.getY(), Color.GRAY);
+        if (!stringNumber.endsWith("5")) {
+            StringBuilder multiply = new StringBuilder("0.");
+            for (int i = stringNumber.indexOf(".") + 1; i < stringNumber.length() - 1; i++) {
+                multiply.append("0");
+            }
+            multiply.append("5");
+            multipleOf = Double.parseDouble(multiply.toString());
+            result = Math.round(num / multipleOf) * multipleOf;
         }
-        for (double y = -screenConverter.getRealHeight(); y <= screenConverter.getRealHeight(); y += stepY) {
-            ScreenPoint point1 = screenConverter.realToScreen(new RealPoint(-screenConverter.getRealWidth(), y));
-            ScreenPoint point2 = screenConverter.realToScreen(new RealPoint(screenConverter.getRealWidth(), y));
-            lineDrawer.drawLine(point1.getX(), point1.getY(), point2.getX(), point2.getY(), Color.GRAY);
-        }
+        System.out.println(num + " round to " + multipleOf + ": " + result);
+        return result;
     }
 
-    private void drawSignatures(Graphics2D graphics2D) {
-        graphics2D.setColor(Color.BLACK);
-        double stepX = screenConverter.getRealWidth() / 10;
-        double stepY = screenConverter.getRealHeight() / 10;
-
-        graphics2D.setFont(new Font(Font.DIALOG, Font.BOLD, 20));
-        for (double x = -screenConverter.getRealWidth(); x <= screenConverter.getRealWidth(); x += stepX) {
-            if (x == 0) continue;
-            ScreenPoint point1 = screenConverter.realToScreen(new RealPoint(x, 0));
-            graphics2D.drawString(getSignature(x), point1.getX(), point1.getY());
-        }
-        for (double y = -screenConverter.getRealHeight(); y <= screenConverter.getRealHeight(); y += stepY) {
-            ScreenPoint point1 = screenConverter.realToScreen(new RealPoint(0, y));
-            graphics2D.drawString(getSignature(y), point1.getX(), point1.getY());
-        }
-    }
-
-    private String getSignature(double signature) {
-        DecimalFormat decimalFormat = new DecimalFormat("#.#");
-//        return Math.abs(Math.abs(signature) - Math.abs((int) signature)) <= 0.1 ? String.valueOf((int) signature) : decimalFormat.format(signature);
-        return decimalFormat.format(signature);
-    }
 
     @Override
     public void paint(Graphics g) {
         screenConverter.setScreenWidth(getWidth());
         screenConverter.setScreenHeight(getHeight());
-        BufferedImage bufferedImage = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
+        coordinateSystem.setScreenConverter(screenConverter);
+        BufferedImage bufferedImage = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
+
         pixelDrawer = new BufferedImagePixelDrawer(bufferedImage);
         Graphics2D graphics2D = (Graphics2D) bufferedImage.getGraphics();
         graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        lineDrawer = new WuLineDrawer(pixelDrawer);
+        lineDrawer = new BresenhamLineDrawer(pixelDrawer);
         graphics2D.setColor(new Color(220, 220, 220));
         graphics2D.fillRect(0, 0, getWidth(), getHeight());
-        drawGrid(lineDrawer);
-        drawSignatures(graphics2D);
-        drawAxis(lineDrawer);
+        coordinateSystem.draw(lineDrawer, graphics2D);
 //        for (Line line : allLines) {
 //            drawLine(lineDrawer, line);
 //        }
@@ -136,20 +116,16 @@ public class DrawPanel extends JPanel implements MouseMotionListener, MouseListe
         lineDrawer.drawLine(
                 screenConverter.realToScreen(line.getP1()),
                 screenConverter.realToScreen(line.getP2()),
-                Color.BLACK);
-
+                line.getColor());
     }
 
-    private void drawAxis(LineDrawer lineDrawer) {
-        Line xAxis = new Line(-screenConverter.getRealWidth(), 0, screenConverter.getRealWidth(), 0, Color.BLACK);
-        Line yAxis = new Line(0, -screenConverter.getRealHeight(), 0, screenConverter.getRealHeight(), Color.BLACK);
-        drawLine(lineDrawer, xAxis);
-        drawLine(lineDrawer, yAxis);
-
-    }
 
     @Override
     public void mouseClicked(MouseEvent e) {
+        double scale = 1;
+        if (e.getButton() == MouseEvent.BUTTON1) scale  = 1.1;
+        else if (e.getButton() == MouseEvent.BUTTON3) scale = 0.9;
+        screenConverter.scale(scale);
 
     }
 
@@ -204,6 +180,7 @@ public class DrawPanel extends JPanel implements MouseMotionListener, MouseListe
         if (currentNewLine != null) {
             currentNewLine.setP2(screenConverter.screenToReal(currentPosition));
         }
+
         repaint();
     }
 
@@ -214,22 +191,32 @@ public class DrawPanel extends JPanel implements MouseMotionListener, MouseListe
 
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
-//        "x' = x0+(x-x0)*Sx;";
-//        "y' = y0+(y-y0)*Sy;";
-//        RealPoint zeroReal = screenConverter.screenToReal(new ScreenPoint(0, 0));
-//        ScreenPoint zeroScreen = screenConverter.realToScreen(zeroReal);
-//        RealPoint realLocation = screenConverter.screenToReal(new ScreenPoint(e.getLocationOnScreen().x, e.getLocationOnScreen().y));
-//        double newX = realLocation.getX() + (zeroReal.getX() - realLocation.getX()) * 2;
-//        double newY = realLocation.getY() + (zeroReal.getY() - realLocation.getY()) * 2;
 
+        String s = "Формула масштабирования относительно произвольной точки M(x0,y0,z0):\n" +
+                "x' = x0+(x-x0)*Sx;\n" +
+                "y' = y0+(y-y0)*Sy;\n" +
+                "z' = z0+(z-z0)*Sz;";
         int clicks = e.getWheelRotation();
-        double scale = 1;
-        double coef = clicks < 0 ? 1.05 : 0.95;
+        double zoom = 1;
+
+        RealPoint center = new RealPoint(0, 0);
+        double coefficient = clicks < 0 ? 1.05 : 0.95;
         for (int i = 0; i < Math.abs(clicks); i++) {
-            scale *= coef;
+            zoom *= coefficient;
         }
-        screenConverter.setRealWidth(screenConverter.getRealWidth() * scale);
-        screenConverter.setRealHeight(screenConverter.getRealHeight() * scale);
+//        ScreenPoint currentPosition = new ScreenPoint(e.getX(), e.getY());
+//        ScreenPoint deltaScreen = new ScreenPoint(
+//                currentPosition.getX() - lastPosition.getX(),
+//                currentPosition.getY() - lastPosition.getY());
+//        RealPoint deltaReal = screenConverter.screenToReal(deltaScreen);
+//        RealPoint zeroReal = screenConverter.screenToReal(new ScreenPoint(0, 0));
+//        RealPoint vector = new RealPoint(
+//                deltaReal.getX() - zeroReal.getX(),
+//                deltaReal.getY() - zeroReal.getY());
+//        screenConverter.setCornerX(screenConverter.getCornerX() - vector.getX());
+//        screenConverter.setCornerY(screenConverter.getCornerY() - vector.getY());
+//        lastPosition = currentPosition;
+        screenConverter.scale(zoom);
         repaint();
     }
 
