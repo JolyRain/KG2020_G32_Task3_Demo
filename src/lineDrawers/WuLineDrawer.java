@@ -17,7 +17,6 @@ public class WuLineDrawer implements LineDrawer {
         return Math.abs(number) - (int) Math.abs(number);
     }
 
-
     @Override
     public void drawLine(int x1, int y1, int x2, int y2, Color color) {
         int dx = x2 - x1;

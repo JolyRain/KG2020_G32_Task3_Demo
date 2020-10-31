@@ -8,19 +8,18 @@ import utils.ScreenPoint;
 
 import java.awt.*;
 import java.text.DecimalFormat;
-import java.util.LinkedList;
-import java.util.List;
+
+import static defaults.Defaults.*;
 
 public class CoordinateSystem {
     private ScreenConverter screenConverter;
-    private Font font;
     private double realWidth, realHeight, cornerX, cornerY;
     private double stepX = 1;
     private double stepY = 1;
 
     private double oldRealWidth;
     private double oldRealHeight;
-    private List<Double> coefficients = new LinkedList<>();
+
     public CoordinateSystem(ScreenConverter screenConverter) {
         this.screenConverter = screenConverter;
         this.cornerX = screenConverter.getCornerX();
@@ -29,49 +28,44 @@ public class CoordinateSystem {
         this.realHeight = screenConverter.getRealHeight();
         oldRealHeight = realHeight;
         oldRealWidth = realWidth;
-        coefficients.add(2.0);
-        coefficients.add(2.0);
-        coefficients.add(2.5);
-
     }
 
     public void draw(LineDrawer lineDrawer, Graphics graphics) {
-        font = new Font(Font.DIALOG, Font.BOLD, 15);
-        recount();
+        recountStep();
         drawSmallGrid(lineDrawer);
-        drawGrid(lineDrawer);
+        drawMainGrid(lineDrawer);
         drawAxis(lineDrawer);
         drawSignatures((Graphics2D) graphics);
     }
 
-    private int index = 0;
 
-    private void recount() {
+    private int index = 1;
+    boolean saveCoefficient = false;
+
+    private void recountStep() {
         if (realWidth == oldRealWidth) return;
         if (realWidth > oldRealWidth) {
-            if ((((int) (realWidth / oldRealWidth))) % 2 == 0) {
+            if ((((int) (realWidth / oldRealWidth))) == 2) {
                 oldRealWidth = realWidth;
                 oldRealHeight = realHeight;
-                stepX *= coefficients.get(index);
-                stepY *= coefficients.get(index);
-                System.out.println(">>>>>>>");
-                System.out.println(index);
+                stepX *= COEFFICIENTS.get(index);
+                stepY *= COEFFICIENTS.get(index);
                 index++;
-                if (index == 3) index = 0;
             }
         } else {
-            if ((((int) (oldRealWidth / realWidth))) % 2 == 0) {
+            if ((((int) (oldRealWidth / realWidth))) == 2) {
                 oldRealWidth = realWidth;
                 oldRealHeight = realHeight;
-                stepX /= coefficients.get(index);
-                stepY /= coefficients.get(index);
-                System.out.println("<<<<<<<<");
-                System.out.println(index);
+                stepX /= COEFFICIENTS.get(index);
+                stepY /= COEFFICIENTS.get(index);
                 index++;
-                if (index == 3) index = 0;
             }
         }
-        //        System.out.println(screenConverter);
+        if (index == COEFFICIENTS.size()) index = 0;
+    }
+
+    private void recountStep(double coefficient) {
+
     }
 
     private void drawGrid(LineDrawer lineDrawer, double stepX, double stepY, Color color) {
@@ -94,17 +88,18 @@ public class CoordinateSystem {
     }
 
     private void drawSmallGrid(LineDrawer lineDrawer) {
-        drawGrid(lineDrawer, stepX / 2, stepY / 2, new Color(200, 200, 200));
+        drawGrid(lineDrawer, stepX / SMALL_GRID_DIVIDER, stepY / SMALL_GRID_DIVIDER, SMALL_GRID_COLOR);
     }
 
-    private void drawGrid(LineDrawer lineDrawer) {
-        drawGrid(lineDrawer, stepX, stepY, new Color(150, 150, 150));
+    private void drawMainGrid(LineDrawer lineDrawer) {
+        drawGrid(lineDrawer, stepX, stepY, MAIN_GRID_COLOR);
     }
 
     private void drawSignatures(Graphics2D graphics2D) {
         graphics2D.setColor(Color.BLACK);
-        graphics2D.setFont(font);
+        graphics2D.setFont(FONT_SIGNATURES);
         drawZero(graphics2D);
+
         for (double x = stepX; x <= realWidth + Math.abs(cornerX); x += stepX) {
             ScreenPoint point = screenConverter.realToScreen(new RealPoint(x, 0));
             ScreenPoint mirrorPoint = screenConverter.realToScreen(new RealPoint(-x, 0));
@@ -118,29 +113,38 @@ public class CoordinateSystem {
             graphics2D.drawString(getSignature(-y), mirrorPoint.getX(), mirrorPoint.getY());
         }
     }
+
     private void drawZero(Graphics2D graphics2D) {
         ScreenPoint point = screenConverter.realToScreen(new RealPoint(0, 0));
         graphics2D.drawString(String.valueOf(0), point.getX(), point.getY());
-
     }
 
     private void drawAxis(LineDrawer lineDrawer) {
         Line xAxis = new Line(
                 screenConverter.getCornerX(), 0,
                 screenConverter.getRealWidth() + screenConverter.getCornerX(), 0,
-                Color.RED);
+                Color.BLACK);
         Line yAxis = new Line(
                 0, -screenConverter.getRealHeight() + screenConverter.getCornerY(),
                 0, screenConverter.getRealHeight() + screenConverter.getCornerY(),
-                Color.RED);
-        lineDrawer.drawLine(screenConverter.realToScreen(xAxis.getP1()), screenConverter.realToScreen(xAxis.getP2()), xAxis.getColor());
-        lineDrawer.drawLine(screenConverter.realToScreen(yAxis.getP1()), screenConverter.realToScreen(yAxis.getP2()), yAxis.getColor());
+                Color.BLACK);
+        lineDrawer.drawLine(
+                screenConverter.realToScreen(xAxis.getP1()),
+                screenConverter.realToScreen(xAxis.getP2()),
+                xAxis.getColor());
+        lineDrawer.drawLine(
+                screenConverter.realToScreen(yAxis.getP1()),
+                screenConverter.realToScreen(yAxis.getP2()),
+                yAxis.getColor());
 
     }
 
 
     private String getSignature(double signature) {
         DecimalFormat decimalFormat = new DecimalFormat();
+        if (Math.abs(signature) <= LOWER_LIMIT_NUMBER || Math.abs(signature) >= UPPER_LIMIT_NUMBER) {
+            return String.format("%.0e", signature);
+        }
         return decimalFormat.format(signature);
     }
 

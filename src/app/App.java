@@ -7,6 +7,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Map;
 
+import static defaults.Defaults.*;
+
 public class App {
     private JFrame frame;
     private DrawPanel drawPanel;
@@ -19,10 +21,11 @@ public class App {
 
     private void createFrame() {
         frame = new JFrame("Functions");
-        frame.setSize(Defaults.FRAME_WIDTH, Defaults.FRAME_HEIGHT);
+        frame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
         frame.setLayout(null);
+        frame.setResizable(false);
         frame.setFocusable(true);
     }
 
@@ -42,11 +45,10 @@ public class App {
 
     private void createLeftPanel() {
         leftPanel = new JPanel();
-        leftPanel.setFont(Defaults.FONT_LABEL);
-
-        for (Map.Entry<String, Function> entry : Defaults.FUNCTIONS_MAP.entrySet()) {
+        leftPanel.setFont(FONT_LABEL);
+        for (Map.Entry<String, Function> entry : FUNCTIONS_MAP.entrySet()) {
             JCheckBox function = new JCheckBox(entry.getKey());
-            function.setFont(Defaults.FONT_LABEL);
+            function.setFont(FONT_LABEL);
             function.addActionListener(e -> {
                 if (function.isSelected()) {
                     drawPanel.addFunction(entry.getValue());
